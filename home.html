@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Pixora · Share your moments{% endblock %}
+{% block content %}
+<section class="home-page">
+    <div class="home-hero">
+        <div class="home-copy">
+            <p class="eyebrow"><span aria-hidden="true"></span> A little more connected</p>
+            <h1>Share Your Moments <span>with Pixora</span></h1>
+            <p class="home-intro">
+                Connect with friends, share photos, and discover amazing moments.
+            </p>
+            <div class="home-actions">
+                {% if session.get('user_id') %}
+                    <a class="primary-link" href="{{ url_for('login') }}">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5z"/>
+                            <path d="M8 8h8M8 12h8M8 16h4"/>
+                        </svg>
+                        login
+                    </a>
+                    <a class="secondary-link" href="{{ url_for('register') }}">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 5v14M5 12h14"/>
+                        </svg>
+                        Create Account
+                    </a>
+                {% else %}
+                    <a class="primary-link" href="{{ url_for('register') }}">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 5v14M5 12h14"/>
+                        </svg>
+                        Register
+                    </a>
+                    <a class="secondary-link" href="{{ url_for('login') }}">Log in</a>
+                {% endif %}
+            </div>
+            <p class="home-note">
+                <span aria-hidden="true">✦</span>
+                A welcoming space for your everyday stories.
+            </p>
+        </div>
+
+        <div class="home-showcase" aria-hidden="true">
+            <div class="showcase-orbit showcase-orbit-one"></div>
+            <div class="showcase-orbit showcase-orbit-two"></div>
+            <div class="showcase-card showcase-card-main">
+                <div class="showcase-sun"></div>
+                <div class="showcase-hill showcase-hill-back"></div>
+                <div class="showcase-hill showcase-hill-front"></div>
+                <div class="showcase-caption">
+                    <span class="showcase-avatar">✦</span>
+                    <span><strong>Your next favorite moment</strong><small>A little brighter, together</small></span>
+                    <span class="showcase-heart">♡</span>
+                </div>
+            </div>
+            <div class="showcase-chip showcase-chip-top">✦ &nbsp; Your people, your stories</div>
+            <div class="showcase-chip showcase-chip-bottom">♡ &nbsp; Made for the moments</div>
+        </div>
+    </div>
+
+    <div class="home-features" aria-label="Discover Pixora">
+        <article class="home-feature">
+            <span class="home-feature-icon" aria-hidden="true">✦</span>
+            <span class="home-feature-kicker">01 / SHARE</span>
+            <h2>Your world, in focus</h2>
+            <p>Share the photos and everyday details worth remembering.</p>
+        </article>
+        <article class="home-feature">
+            <span class="home-feature-icon" aria-hidden="true">♡</span>
+            <span class="home-feature-kicker">02 / CONNECT</span>
+            <h2>Find your people</h2>
+            <p>Follow creators, trade ideas, and join a thoughtful community.</p>
+        </article>
+        <article class="home-feature">
+            <span class="home-feature-icon" aria-hidden="true">▶</span>
+            <span class="home-feature-kicker">03 / DISCOVER</span>
+            <h2>See a new perspective</h2>
+            <p>Explore reels and little moments from across Pixora.</p>
+        </article>
+    </div>
+</section>
+{% endblock %}

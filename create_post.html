@@ -1,0 +1,39 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Create Post | Pixora</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/create_post.css') }}">
+</head>
+<body>
+    <main class="auth-card create-post-card">
+        <h1>Create Post</h1>
+        <p>Share a photo with your followers.</p>
+
+        {% for message in get_flashed_messages() %}
+            <p class="message">{{ message }}</p>
+        {% endfor %}
+
+        <form method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <label for="image">Choose photo</label>
+            <input id="image" type="file" name="image"
+                   accept="image/jpeg,image/png,image/webp" required>
+
+            <label for="caption">Caption</label>
+            <textarea id="caption" name="caption"
+                      maxlength="2200" rows="4"
+                      placeholder="Write a caption..."></textarea>
+
+            <button type="submit">Publish Post</button>
+        </form>
+
+        <p><a href="{{ url_for('feed') }}">Back to feed</a></p>
+    </main>
+</body>
+</html>

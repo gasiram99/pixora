@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Edit reel · Pixora{% endblock %}
+{% block content %}
+<section class="edit-post-page">
+    <header class="edit-post-heading">
+        <p class="eyebrow">YOUR REEL</p>
+        <h1>Edit reel</h1>
+        <p>Update the caption for your video.</p>
+    </header>
+
+    {% for category, message in get_flashed_messages(with_categories=true) %}
+        <p class="message {{ category }}" role="status">{{ message }}</p>
+    {% endfor %}
+
+    <article class="edit-post-preview edit-reel-preview">
+        <video controls playsinline preload="metadata"
+               aria-label="Your reel">
+            <source src="{{ url_for('static', filename='uploads/reels/' + reel.video_filename) }}"
+                    type="{{ 'video/mp4' if reel.video_filename.lower().endswith('.mp4') else 'video/webm' }}">
+            Your browser does not support video playback.
+        </video>
+        <form method="POST" action="{{ url_for('edit_reel', reel_id=reel.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <label for="caption">Caption</label>
+            <textarea id="caption" name="caption" maxlength="500" rows="4"
+                      placeholder="Write a caption…">{{ reel.caption }}</textarea>
+            <div class="edit-post-actions">
+                <a class="secondary-link" href="{{ url_for('profile', username=session.get('username')) }}">
+                    Cancel
+                </a>
+                <button class="primary-link" type="submit">Save changes</button>
+            </div>
+        </form>
+    </article>
+</section>
+{% endblock %}

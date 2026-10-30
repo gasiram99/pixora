@@ -1,0 +1,42 @@
+{% if session.get('user_id') and request.endpoint == 'profile' %}
+<aside class="app-sidebar" id="app-sidebar" aria-label="Sidebar">
+    <div class="sidebar-heading">
+        <span>Menu</span>
+        <button class="sidebar-close" type="button"
+                aria-label="Close sidebar" title="Close sidebar"
+                data-sidebar-close>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m6 6 12 12M18 6 6 18"/>
+            </svg>
+        </button>
+    </div>
+    <nav class="sidebar-nav" aria-label="Main navigation">
+        <a class="sidebar-link{% if request.endpoint == 'notifications' %} is-active{% endif %}"
+           href="{{ url_for('notifications') }}"
+           {% if request.endpoint == 'notifications' %}aria-current="page"{% endif %}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
+            <span>Notifications</span>
+        </a>
+        <p class="sidebar-section-label">Account settings</p>
+        <a class="sidebar-link{% if request.endpoint == 'change_username' %} is-active{% endif %}"
+           href="{{ url_for('change_username') }}"
+           {% if request.endpoint == 'change_username' %}aria-current="page"{% endif %}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="m17 8 2 2 4-4"/></svg>
+            <span>Change username</span>
+        </a>
+        <a class="sidebar-link{% if request.endpoint == 'change_password' %} is-active{% endif %}"
+           href="{{ url_for('change_password') }}"
+           {% if request.endpoint == 'change_password' %}aria-current="page"{% endif %}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3m-4 5v2"/></svg>
+            <span>Change password</span>
+        </a>
+        <form class="sidebar-logout-form" action="{{ url_for('logout') }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="sidebar-link" type="submit">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5"/><path d="m15 16 4-4-4-4m4 4H9"/></svg>
+                <span>Log out</span>
+            </button>
+        </form>
+    </nav>
+</aside>
+{% endif %}

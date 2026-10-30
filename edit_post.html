@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Edit post · Pixora{% endblock %}
+{% block content %}
+<section class="edit-post-page">
+    <header class="edit-post-heading">
+        <p class="eyebrow">YOUR POST</p>
+        <h1>Edit post</h1>
+        <p>Update the caption for your photo.</p>
+    </header>
+
+    {% for category, message in get_flashed_messages(with_categories=true) %}
+        <p class="message {{ category }}" role="status">{{ message }}</p>
+    {% endfor %}
+
+    <article class="edit-post-preview">
+        <img src="{{ url_for('static', filename='uploads/' + post.image_filename) }}"
+             alt="Your post photo">
+        <form method="POST" action="{{ url_for('edit_post', post_id=post.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <label for="caption">Caption</label>
+            <textarea id="caption" name="caption" maxlength="2200" rows="5"
+                      placeholder="Write a caption…">{{ post.caption }}</textarea>
+            <div class="edit-post-actions">
+                <a class="secondary-link" href="{{ url_for('profile', username=session.get('username')) }}">
+                    Cancel
+                </a>
+                <button class="primary-link" type="submit">Save changes</button>
+            </div>
+        </form>
+    </article>
+</section>
+{% endblock %}

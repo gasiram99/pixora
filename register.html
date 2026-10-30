@@ -1,0 +1,44 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account | Pixora</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <main class="auth-card">
+        <h1>Pixora</h1>
+        <p>Share your moments with the world.</p>
+
+        {% with messages = get_flashed_messages() %}
+          {% for message in messages %}
+            <p class="message">{{ message }}</p>
+          {% endfor %}
+        {% endwith %}
+
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <label for="username">Username</label>
+            <input id="username" name="username"
+                   minlength="3" maxlength="30" required>
+
+            <label for="email">Email</label>
+            <input id="email" type="email" name="email" required>
+
+            <label for="password">Password</label>
+            <input id="password" type="password" name="password"
+                   autocomplete="new-password"
+                   minlength="8" maxlength="128" required>
+
+            <button type="submit">Create Account</button>
+        </form>
+
+        <p>Already registered?
+            <a href="{{ url_for('login') }}">Log in</a>
+        </p>
+    </main>
+</body>
+</html>

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Edit profile · Pixora{% endblock %}
+{% block content %}
+<section class="account-settings profile-edit-page">
+    <header class="profile-edit-heading">
+        <p class="eyebrow">YOUR ACCOUNT</p>
+        <h1>Edit profile</h1>
+        <p>Update how you appear to the Pixora community.</p>
+    </header>
+
+    <form class="profile-edit-form" action="{{ url_for('edit_profile') }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <label for="full-name">Full name</label>
+        <input id="full-name" name="full_name" type="text"
+               value="{{ profile_data.full_name or '' }}"
+               maxlength="100" autocomplete="name">
+
+        <label for="profile-bio">Bio</label>
+        <textarea id="profile-bio" name="bio" rows="4" maxlength="300"
+                  placeholder="Tell people a little about yourself">{{ profile_data.bio or '' }}</textarea>
+        <small class="profile-edit-hint">Up to 300 characters.</small>
+
+        <label for="website">Website</label>
+        <input id="website" name="website" type="text"
+               value="{{ profile_data.website or '' }}"
+               maxlength="2048" placeholder="https://example.com"
+               autocomplete="url" inputmode="url">
+        <small class="profile-edit-hint">Include a public link using http:// or https://.</small>
+
+        <div class="profile-edit-actions">
+            <a class="secondary-link"
+               href="{{ url_for('profile', username=session.get('username')) }}">Cancel</a>
+            <button class="primary-link" type="submit">Save profile</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

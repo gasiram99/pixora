@@ -1,0 +1,96 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#ffffff">
+    <title>{% block title %}Pixora{% endblock %}</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+    {% if request.endpoint in ('profile', 'edit_profile') %}
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/profile.css') }}">
+    {% endif %}
+    {% if request.endpoint == 'home' %}
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/home.css') }}">
+    {% endif %}
+    {% if request.endpoint == 'reset_password' %}
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/reset_password.css') }}">
+    {% endif %}
+    {% if request.endpoint == 'reels' %}
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/reels.css') }}">
+    <script src="{{ url_for('static', filename='js/reels.js') }}" defer></script>
+    {% endif %}
+    {% if request.endpoint == 'messages' %}
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/messages.css') }}">
+    <script src="{{ url_for('static', filename='js/messages.js') }}" defer></script>
+    {% endif %}
+    {% if request.endpoint == 'search' %}
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/search.css') }}">
+    <script src="{{ url_for('static', filename='js/search.js') }}" defer></script>
+    {% endif %}
+    <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</head>
+<body{% if session.get('user_id') and request.endpoint == 'profile' %} class="has-sidebar profile-page-body has-bottom-nav"{% elif session.get('user_id') and request.endpoint == 'reels' %} class="has-bottom-nav reels-page-body"{% elif session.get('user_id') and request.endpoint == 'messages' %} class="has-bottom-nav messages-page-body"{% elif session.get('user_id') and request.endpoint == 'search' %} class="has-bottom-nav"{% endif %}>
+    <header class="navbar">
+        <a class="brand" href="{{ url_for('home') }}">Pixora</a>
+        {% if session.get('user_id') %}
+        <div class="navbar-actions">
+        {% if request.endpoint == 'home' %}
+        <nav class="navbar-auth-links home-navbar-links" aria-label="Home actions">
+            <a class="secondary-link" href="{{ url_for('feed') }}">View Your Feed</a>
+            <a class="primary-link" href="{{ url_for('create_post') }}">Create Post</a>
+        </nav>
+        {% endif %}
+        {% if request.endpoint == 'profile' %}
+        <button class="sidebar-toggle" type="button"
+                aria-controls="app-sidebar" aria-expanded="true"
+                aria-label="Close sidebar" title="Close sidebar"
+                data-sidebar-toggle>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+        </button>
+        {% endif %}
+        <a class="header-notification" href="{{ url_for('notifications') }}"
+           aria-label="Notifications{% if unread_notification_count %}, {{ unread_notification_count }} unread{% endif %}"
+           title="Notifications">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/>
+                <path d="M10 21h4"/>
+            </svg>
+            {% if unread_notification_count %}
+                <span class="notification-badge">{{ unread_notification_count }}</span>
+            {% endif %}
+        </a>
+        </div>
+        {% else %}
+        <nav class="navbar-auth-links" aria-label="Account">
+            <a class="secondary-link" href="{{ url_for('login') }}">Log in</a>
+            <a class="primary-link" href="{{ url_for('register') }}">Create account</a>
+        </nav>
+        {% endif %}
+    </header>
+
+    {% if request.endpoint == 'profile' %}
+        {% include "_sidebar.html" %}
+    {% endif %}
+
+    <main class="page-container">
+        {% with messages = get_flashed_messages() %}
+            {% for message in messages %}
+                <div class="message">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+</body>
+</html>

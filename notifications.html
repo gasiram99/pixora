@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Notifications · Pixora{% endblock %}
+{% block content %}
+<section class="notifications-page">
+    <p class="eyebrow">WHAT'S HAPPENING</p>
+    <h1>Notifications</h1>
+
+    {% if notifications %}
+        <div class="notification-list">
+            {% for item in notifications %}
+                {% if item.notification_type == 'message' %}
+                    {% set notification_url = url_for('messages', to=item.actor_username) %}
+                    {% set action_text = 'sent you a message' %}
+                {% elif item.notification_type == 'follow' %}
+                    {% set notification_url = url_for('profile', username=item.actor_username) %}
+                    {% set action_text = 'started following you' %}
+                {% else %}
+                    {% set notification_url = url_for('feed') ~ '#post-' ~ item.post_id %}
+                    {% if item.notification_type == 'like' %}
+                        {% set action_text = 'liked your post' %}
+                    {% else %}
+                        {% set action_text = 'commented on your post' %}
+                    {% endif %}
+                {% endif %}
+                <a class="notification-item{% if not item.is_read %} unread{% endif %}"
+                   href="{{ notification_url }}">
+                    <span class="search-avatar notification-avatar" aria-hidden="true">
+                        {{ item.actor_username[0]|upper }}
+                    </span>
+                    <span class="notification-copy">
+                        <span><strong>@{{ item.actor_username }}</strong> {{ action_text }}</span>
+                        <time datetime="{{ item.created_at.isoformat() }}">
+                            {{ item.created_at.strftime("%b %d, %Y · %I:%M %p") }}
+                        </time>
+                    </span>
+                    {% if not item.is_read %}
+                        <span class="unread-dot" aria-label="Unread"></span>
+                    {% endif %}
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card empty-state notifications-empty">
+            <div class="empty-icon" aria-hidden="true">♧</div>
+            <h2>You’re all caught up</h2>
+            <p>Likes, comments, new followers, and messages will show up here.</p>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

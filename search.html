@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+{% block title %}Search & Explore · Pixora{% endblock %}
+{% block content %}
+<section class="search-page" data-search-page>
+    <header class="search-hero">
+        <div class="search-hero-copy">
+            <p class="search-eyebrow"><span aria-hidden="true">✦</span> DISCOVER SOMETHING NEW</p>
+            <h1>Find your next <span>favorite thing.</span></h1>
+            <p class="search-description">
+                Meet the people and discover the moments that make Pixora feel like your place.
+            </p>
+        </div>
+        <div class="search-hero-art" aria-hidden="true">
+            <span class="search-orbit search-orbit-one"></span>
+            <span class="search-orbit search-orbit-two"></span>
+            <span class="search-art-card search-art-card-back">✦</span>
+            <span class="search-art-card search-art-card-front">
+                <svg viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg>
+            </span>
+        </div>
+
+        <form class="search-form" action="{{ url_for('search') }}" method="GET" role="search">
+            <svg class="search-input-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="10.8" cy="10.8" r="6.8"/>
+                <path d="m16 16 5 5"/>
+            </svg>
+            <label class="visually-hidden" for="query">Search people and posts</label>
+            <input id="query" name="q" type="search" value="{{ query }}"
+                   placeholder="Search people, captions, or hashtags"
+                   maxlength="100" autocomplete="off" data-search-input>
+            <button class="search-clear-button" type="button" data-search-clear
+                    aria-label="Clear search" title="Clear search" {% if not query %}hidden{% endif %}>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+            </button>
+            <button class="search-submit-button" type="submit">
+                <span>Search</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 14 0m-6-6 6 6-6 6"/></svg>
+            </button>
+        </form>
+
+        <div class="search-suggestions" aria-label="Search suggestions">
+            <span>Try searching</span>
+            {% for suggestion in ["travel", "photography", "art", "food"] %}
+                <button type="button" data-search-suggestion="{{ suggestion }}">#{{ suggestion }}</button>
+            {% endfor %}
+        </div>
+        <div class="search-recent" data-search-recent hidden>
+            <div class="search-recent-heading">
+                <strong>Recent searches</strong>
+                <button type="button" data-search-history-clear>Clear all</button>
+            </div>
+            <ul data-search-history-list></ul>
+        </div>
+    </header>
+
+    {% if query %}
+        <div class="search-results-heading">
+            <div>
+                <p class="search-eyebrow">YOUR RESULTS</p>
+                <h2>Search results for <span>“{{ query }}”</span></h2>
+            </div>
+            <span class="search-result-total">
+                {{ users|length + discovery_posts|length }}
+                {{ 'result' if users|length + discovery_posts|length == 1 else 'results' }}
+            </span>
+        </div>
+
+        {% if users %}
+            <section class="search-results-section" aria-labelledby="people-results-title">
+                <header class="search-section-heading">
+                    <h2 id="people-results-title">People</h2>
+                    <span>{{ users|length }} found</span>
+                </header>
+                <div class="search-results">
+                    {% for user in users %}
+                        <article class="search-result-card">
+                            <a class="search-result-main" href="{{ url_for('profile', username=user.username) }}">
+                                <span class="search-avatar">
+                                    {% if user.profile_image %}
+                                        <img src="{{ url_for('static', filename='uploads/' + user.profile_image) }}"
+                                             alt="" loading="lazy">
+                                    {% else %}
+                                        <span>{{ user.username[0]|upper }}</span>
+                                    {% endif %}
+                                </span>
+                                <span class="search-result-info">
+                                    <strong>@{{ user.username }}</strong>
+                                    {% if user.full_name %}<span class="search-result-name">{{ user.full_name }}</span>{% endif %}
+                                    {% if user.bio %}<span class="search-result-bio">{{ user.bio }}</span>{% endif %}
+                                </span>
+                                <span class="search-result-arrow" aria-hidden="true">↗</span>
+                            </a>
+                            {% if user.id != session.get('user_id') %}
+                                <form class="search-follow-form" action="{{ url_for('toggle_follow', target_id=user.id) }}" method="POST">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="return_to" value="search">
+                                    <input type="hidden" name="q" value="{{ query }}">
+                                    <button class="search-follow-button{% if user.followed_by_me %} is-following{% endif %}"
+                                            type="submit"
+                                            aria-label="{{ 'Unfollow' if user.followed_by_me else 'Follow' }} @{{ user.username }}">
+                                        {{ 'Following' if user.followed_by_me else 'Follow' }}
+                                    </button>
+                                </form>
+                            {% else %}
+                                <span class="search-you-label">You</span>
+                            {% endif %}
+                        </article>
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+
+        {% if discovery_posts %}
+            <section class="search-results-section" aria-labelledby="post-results-title">
+                <header class="search-section-heading">
+                    <h2 id="post-results-title">Posts</h2>
+                    <span>{{ discovery_posts|length }} found</span>
+                </header>
+                <div class="search-post-grid">
+                    {% for post in discovery_posts %}
+                        <a class="search-post-card" href="{{ url_for('profile', username=post.username) }}"
+                           aria-label="Post by @{{ post.username }}: {{ post.caption|truncate(100, True) }}">
+                            <img src="{{ url_for('static', filename='uploads/' + post.image_filename) }}"
+                                 alt="Post by @{{ post.username }}" loading="lazy">
+                            <div class="search-post-overlay">
+                                <span class="search-post-owner">@{{ post.username }}</span>
+                                {% if post.caption %}
+                                    <span class="search-post-caption">{{ post.caption|truncate(100, True) }}</span>
+                                {% endif %}
+                                <span class="search-post-stats">
+                                    <span aria-label="{{ post.like_count }} likes">♥ {{ post.like_count }}</span>
+                                    <span aria-label="{{ post.comment_count }} comments">▢ {{ post.comment_count }}</span>
+                                </span>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+
+        {% if not users and not discovery_posts %}
+            <section class="search-empty-state">
+                <span class="search-empty-art" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg>
+                    <i>?</i>
+                </span>
+                <p class="search-eyebrow">NO MATCHES THIS TIME</p>
+                <h2>Nothing turned up for “{{ query }}”</h2>
+                <p>Try a different name, a caption keyword, or a hashtag.</p>
+                <button type="button" data-search-clear>Clear search</button>
+            </section>
+        {% endif %}
+    {% else %}
+        {% if users %}
+            <section class="search-results-section search-people-discover" aria-labelledby="discover-people-title">
+                <header class="search-section-heading">
+                    <div>
+                        <p class="search-eyebrow">GOOD PEOPLE, GOOD ENERGY</p>
+                        <h2 id="discover-people-title">People to discover</h2>
+                    </div>
+                    <span>Popular on Pixora</span>
+                </header>
+                <div class="search-results">
+                    {% for user in users %}
+                        <article class="search-result-card">
+                            <a class="search-result-main" href="{{ url_for('profile', username=user.username) }}">
+                                <span class="search-avatar">
+                                    {% if user.profile_image %}
+                                        <img src="{{ url_for('static', filename='uploads/' + user.profile_image) }}"
+                                             alt="" loading="lazy">
+                                    {% else %}
+                                        <span>{{ user.username[0]|upper }}</span>
+                                    {% endif %}
+                                </span>
+                                <span class="search-result-info">
+                                    <strong>@{{ user.username }}</strong>
+                                    {% if user.full_name %}<span class="search-result-name">{{ user.full_name }}</span>{% endif %}
+                                    {% if user.bio %}<span class="search-result-bio">{{ user.bio }}</span>{% endif %}
+                                </span>
+                                <span class="search-result-arrow" aria-hidden="true">↗</span>
+                            </a>
+                            {% if user.id != session.get('user_id') %}
+                                <form class="search-follow-form" action="{{ url_for('toggle_follow', target_id=user.id) }}" method="POST">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="return_to" value="search">
+                                    <button class="search-follow-button{% if user.followed_by_me %} is-following{% endif %}"
+                                            type="submit"
+                                            aria-label="{{ 'Unfollow' if user.followed_by_me else 'Follow' }} @{{ user.username }}">
+                                        {{ 'Following' if user.followed_by_me else 'Follow' }}
+                                    </button>
+                                </form>
+                            {% else %}
+                                <span class="search-you-label">You</span>
+                            {% endif %}
+                        </article>
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
+
+        <section class="search-results-section search-explore-section" aria-labelledby="explore-title">
+            <header class="search-section-heading">
+                <div>
+                    <p class="search-eyebrow">MADE BY YOUR COMMUNITY</p>
+                    <h2 id="explore-title">Explore</h2>
+                </div>
+                <span>Fresh moments on Pixora</span>
+            </header>
+            {% if discovery_posts %}
+                <div class="search-post-grid">
+                    {% for post in discovery_posts %}
+                        <a class="search-post-card" href="{{ url_for('profile', username=post.username) }}"
+                           aria-label="Post by @{{ post.username }}: {{ post.caption|truncate(100, True) }}">
+                            <img src="{{ url_for('static', filename='uploads/' + post.image_filename) }}"
+                                 alt="Post by @{{ post.username }}" loading="lazy">
+                            <div class="search-post-overlay">
+                                <span class="search-post-owner">@{{ post.username }}</span>
+                                {% if post.caption %}
+                                    <span class="search-post-caption">{{ post.caption|truncate(100, True) }}</span>
+                                {% endif %}
+                                <span class="search-post-stats">
+                                    <span aria-label="{{ post.like_count }} likes">♥ {{ post.like_count }}</span>
+                                    <span aria-label="{{ post.comment_count }} comments">▢ {{ post.comment_count }}</span>
+                                </span>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="search-explore-empty">
+                    <span aria-hidden="true">✧</span>
+                    <strong>Your discovery grid is ready for its first post.</strong>
+                    <p>When the community shares photos, you’ll find them here.</p>
+                </div>
+            {% endif %}
+        </section>
+    {% endif %}
+</section>
+<footer class="app-footer">
+    <nav class="footer-nav" aria-label="Main navigation">
+        <a class="footer-icon" href="{{ url_for('feed') }}" aria-label="Home" title="Home">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1V10Z"/></svg>
+            <span>Home</span>
+        </a>
+        <a class="footer-icon" href="{{ url_for('reels') }}" aria-label="Reels" title="Reels">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="m7 4 4 5m2-5 4 5M3 9h18"/><path d="m10 12 5 3-5 3z"/></svg>
+            <span>Reels</span>
+        </a>
+        <a class="footer-icon" href="{{ url_for('messages') }}" aria-label="Messages" title="Messages">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v12H9l-5 4V5Z"/><path d="M8 10h8m-8 4h5"/></svg>
+            <span>Messages</span>
+        </a>
+        <a class="footer-icon is-current" href="{{ url_for('search') }}" aria-label="Search" title="Search" aria-current="page">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg>
+            <span>Search</span>
+        </a>
+        <a class="footer-icon" href="{{ url_for('profile', username=session.get('username')) }}" aria-label="Profile" title="Profile">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+            <span>Profile</span>
+        </a>
+    </nav>
+</footer>
+{% endblock %}

@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#ffffff">
+    <title>Home · Pixora</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/feed.css') }}">
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/stories.css') }}">
+    <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/stories.js') }}" defer></script>
+</head>
+<body class="feed-page social-feed has-bottom-nav">
+    <header class="feed-topbar">
+        <div class="feed-topbar-inner">
+            <a class="brand" href="{{ url_for('feed') }}" aria-label="Pixora home">Pixora</a>
+
+            <form class="feed-search" action="{{ url_for('search') }}" method="GET" role="search">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="10.8" cy="10.8" r="6.8"/>
+                    <path d="m16 16 5 5"/>
+                </svg>
+                <label class="visually-hidden" for="feed-search-query">Search Pixora</label>
+                <input id="feed-search-query" type="search" name="q"
+                       placeholder="Search people and posts" autocomplete="off">
+            </form>
+
+            <nav class="feed-top-actions" aria-label="Quick actions">
+                <a class="feed-top-icon is-active" href="{{ url_for('feed') }}"
+                   aria-label="Home" title="Home" aria-current="page">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1V10Z"/>
+                    </svg>
+                </a>
+                <a class="feed-top-icon" href="{{ url_for('messages') }}"
+                   aria-label="Messages" title="Messages">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8A8.5 8.5 0 0 1 8.7 3.9a8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"/>
+                    </svg>
+                </a>
+                <a class="feed-top-icon feed-notifications"
+                   href="{{ url_for('notifications') }}"
+                   aria-label="Notifications{% if unread_notification_count %}, {{ unread_notification_count }} unread{% endif %}"
+                   title="Notifications">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/>
+                        <path d="M10 21h4"/>
+                    </svg>
+                    {% if unread_notification_count %}
+                        <span class="feed-notification-badge">{{ unread_notification_count }}</span>
+                    {% endif %}
+                </a>
+                <a class="feed-top-icon" href="{{ url_for('search') }}"
+                   aria-label="Explore" title="Explore">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="12" r="9"/>
+                        <path d="m15.8 8.2-2.5 5.1-5.1 2.5 2.5-5.1 5.1-2.5Z"/>
+                    </svg>
+                </a>
+                <a class="feed-top-icon" href="{{ url_for('create_post') }}"
+                   aria-label="Create post" title="Create post">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <rect x="3" y="3" width="18" height="18" rx="5"/>
+                        <path d="M12 8v8m-4-4h8"/>
+                    </svg>
+                </a>
+                <a class="feed-top-icon feed-profile-link"
+                   href="{{ url_for('profile', username=session.get('username')) }}"
+                   aria-label="Profile" title="Profile">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="8" r="4"/>
+                        <path d="M4 21a8 8 0 0 1 16 0"/>
+                    </svg>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="feed-layout">
+        <aside class="feed-left-sidebar" aria-label="Main navigation">
+            <nav class="feed-side-nav">
+                <a class="feed-side-link is-active" href="{{ url_for('feed') }}" aria-current="page">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1V10Z"/>
+                    </svg>
+                    <span>Home</span>
+                </a>
+                <a class="feed-side-link" href="{{ url_for('search') }}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="10.8" cy="10.8" r="6.8"/>
+                        <path d="m16 16 5 5"/>
+                    </svg>
+                    <span>Explore</span>
+                </a>
+                <a class="feed-side-link" href="{{ url_for('reels') }}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <rect x="3" y="4" width="18" height="16" rx="3"/>
+                        <path d="m7 4 4 5m2-5 4 5M3 9h18m-8 3 5 3-5 3z"/>
+                    </svg>
+                    <span>Reels</span>
+                </a>
+                <a class="feed-side-link" href="{{ url_for('messages') }}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8A8.5 8.5 0 0 1 8.7 3.9a8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"/>
+                    </svg>
+                    <span>Messages</span>
+                </a>
+                <a class="feed-side-link" href="{{ url_for('notifications') }}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/>
+                        <path d="M10 21h4"/>
+                    </svg>
+                    <span>Notifications</span>
+                    {% if unread_notification_count %}
+                        <span class="feed-side-badge">{{ unread_notification_count }}</span>
+                    {% endif %}
+                </a>
+                <a class="feed-side-link" href="{{ url_for('create_post') }}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <rect x="3" y="3" width="18" height="18" rx="5"/>
+                        <path d="M12 8v8m-4-4h8"/>
+                    </svg>
+                    <span>Create post</span>
+                </a>
+            </nav>
+
+            <a class="feed-side-profile"
+               href="{{ url_for('profile', username=session.get('username')) }}">
+                <span class="feed-avatar feed-avatar-current">
+                    {{ session.get('username', 'P')[0]|upper }}
+                </span>
+                <span>
+                    <strong>@{{ session.get('username') }}</strong>
+                    <small>Your profile</small>
+                </span>
+            </a>
+            <p class="feed-side-footer">Your place for everyday moments.</p>
+        </aside>
+
+        <section class="feed-main-column" aria-label="Your community feed">
+            <header class="feed-heading">
+                <div>
+                    <p class="eyebrow">YOUR COMMUNITY</p>
+                    <h1>Home</h1>
+                    <p class="feed-subtitle">A little inspiration from your people.</p>
+                </div>
+                <a class="feed-create-button" href="{{ url_for('create_post') }}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <rect x="3" y="3" width="18" height="18" rx="5"/>
+                        <path d="M12 8v8m-4-4h8"/>
+                    </svg>
+                    <span>Create</span>
+                </a>
+            </header>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                    <p class="message {{ category }}" role="status">{{ message }}</p>
+                {% endfor %}
+            {% endwith %}
+
+            {% include "_stories.html" %}
+
+            <section class="feed-post-list" aria-label="Recent posts">
+                {% for post in posts %}
+                    <article class="post-card feed-post-card" id="post-{{ post.id }}"
+                             data-post-card data-post-url="{{ request.url_root.rstrip('/') }}{{ url_for('feed') }}#post-{{ post.id }}">
+                        <header class="post-header">
+                            <a class="avatar feed-post-avatar"
+                               href="{{ url_for('profile', username=post.username) }}"
+                               aria-label="View @{{ post.username }}'s profile">
+                                {{ post.username[0]|upper }}
+                            </a>
+                            <div class="post-author">
+                                <a href="{{ url_for('profile', username=post.username) }}">@{{ post.username }}</a>
+                                <time datetime="{{ post.created_at.isoformat() }}">
+                                    {{ post.created_at.strftime("%b %d, %Y · %I:%M %p") }}
+                                </time>
+                            </div>
+                            <details class="feed-post-menu">
+                                <summary aria-label="More options for @{{ post.username }}'s post"
+                                         title="More options">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                                        <circle cx="5" cy="12" r="1"/>
+                                        <circle cx="12" cy="12" r="1"/>
+                                        <circle cx="19" cy="12" r="1"/>
+                                    </svg>
+                                </summary>
+                                <div class="feed-post-menu-panel">
+                                    <a href="{{ url_for('profile', username=post.username) }}">View profile</a>
+                                    <button type="button" data-share-post>Copy post link</button>
+                                </div>
+                            </details>
+                        </header>
+
+                        <img class="post-image feed-post-image"
+                             src="{{ url_for('static', filename='uploads/' + post.image_filename) }}"
+                             alt="Photo posted by @{{ post.username }}{% if post.caption %}: {{ post.caption }}{% endif %}"
+                             loading="lazy" decoding="async">
+
+                        <div class="post-content feed-post-content">
+                            <div class="feed-post-toolbar">
+                                <div class="post-actions">
+                                    <form action="{{ url_for('toggle_like', post_id=post.id) }}" method="POST">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button class="like-button feed-like-button{% if post.liked_by_me %} is-liked{% endif %}"
+                                                type="submit"
+                                                aria-label="{{ 'Unlike' if post.liked_by_me else 'Like' }} post">
+                                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                                <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/>
+                                            </svg>
+                                            <span>{{ post.like_count }}</span>
+                                        </button>
+                                    </form>
+                                    <button class="feed-action-button" type="button"
+                                            data-comment-focus="comment-{{ post.id }}"
+                                            aria-label="Write a comment">
+                                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                                            <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8A8.5 8.5 0 0 1 8.7 3.9a8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"/>
+                                        </svg>
+                                    </button>
+                                    <button class="feed-action-button" type="button"
+                                            data-share-post aria-label="Share post">
+                                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                                            <circle cx="18" cy="5" r="3"/>
+                                            <circle cx="6" cy="12" r="3"/>
+                                            <circle cx="18" cy="19" r="3"/>
+                                            <path d="m8.7 10.7 6.6-4.4m-6.6 7 6.6 4.4"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <button class="feed-action-button feed-save-button"
+                                        type="button" data-save-post="{{ post.id }}"
+                                        aria-label="Save post" aria-pressed="false">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                                        <path d="M6 4.5A1.5 1.5 0 0 1 7.5 3h9A1.5 1.5 0 0 1 18 4.5V21l-6-4-6 4V4.5Z"/>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <p class="feed-like-summary">
+                                <strong>{{ post.like_count }} {{ 'like' if post.like_count == 1 else 'likes' }}</strong>
+                            </p>
+                            {% if post.caption %}
+                                <p class="post-caption feed-post-caption">
+                                    <a href="{{ url_for('profile', username=post.username) }}">@{{ post.username }}</a>
+                                    {{ post.caption }}
+                                </p>
+                            {% endif %}
+
+                            {% if post.comments %}
+                                <section class="comments feed-comments"
+                                         aria-label="Comments on @{{ post.username }}'s post">
+                                    {% if post.comments|length > 2 %}
+                                        <button class="feed-view-comments" type="button"
+                                                data-expand-comments
+                                                data-original-label="View all {{ post.comments|length }} comments">
+                                            View all {{ post.comments|length }} comments
+                                        </button>
+                                    {% endif %}
+                                    {% for comment in post.comments %}
+                                        <p class="comment feed-comment">
+                                            <a href="{{ url_for('profile', username=comment.username) }}">@{{ comment.username }}</a>
+                                            {{ comment.comment_text }}
+                                        </p>
+                                    {% endfor %}
+                                </section>
+                            {% endif %}
+
+                            <p class="feed-share-status" data-post-status role="status" aria-live="polite"></p>
+                            <form class="comment-form feed-comment-form"
+                                  id="comment-form-{{ post.id }}"
+                                  action="{{ url_for('add_comment', post_id=post.id) }}" method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <label class="visually-hidden" for="comment-{{ post.id }}">Write a comment</label>
+                                <input id="comment-{{ post.id }}" name="comment_text"
+                                       placeholder="Add a comment…" maxlength="1000" required>
+                                <button type="submit">Post</button>
+                            </form>
+                        </div>
+                    </article>
+                {% else %}
+                    <section class="empty-state feed-empty-state">
+                        <span class="feed-empty-icon" aria-hidden="true">✦</span>
+                        <h2>Your feed is ready for its first moment</h2>
+                        <p>Share a photo or find people to follow to get the conversation started.</p>
+                        <a class="feed-create-button" href="{{ url_for('create_post') }}">Create your first post</a>
+                    </section>
+                {% endfor %}
+            </section>
+        </section>
+
+        <aside class="feed-right-sidebar" aria-label="Discover on Pixora">
+            <section class="feed-current-user">
+                <a class="feed-avatar feed-avatar-current"
+                   href="{{ url_for('profile', username=session.get('username')) }}"
+                   aria-label="View your profile">
+                    {{ session.get('username', 'P')[0]|upper }}
+                </a>
+                <span>
+                    <strong>@{{ session.get('username') }}</strong>
+                    <small>Welcome to your community</small>
+                </span>
+                <a class="feed-text-link"
+                   href="{{ url_for('profile', username=session.get('username')) }}">Profile</a>
+            </section>
+
+            <section class="feed-suggestions" aria-labelledby="feed-suggestions-title">
+                <header class="feed-aside-heading">
+                    <h2 id="feed-suggestions-title">People to discover</h2>
+                    <a href="{{ url_for('search') }}">See all</a>
+                </header>
+                {% set suggested_users = namespace(seen=[]) %}
+                {% for post in posts %}
+                    {% if post.username not in suggested_users.seen and post.username != session.get('username') %}
+                        {% set suggested_users.seen = suggested_users.seen + [post.username] %}
+                        {% if suggested_users.seen|length <= 5 %}
+                            <article class="feed-suggestion">
+                                <a class="feed-avatar feed-suggestion-avatar"
+                                   href="{{ url_for('profile', username=post.username) }}"
+                                   aria-label="View @{{ post.username }}'s profile">
+                                    {{ post.username[0]|upper }}
+                                </a>
+                                <span class="feed-suggestion-info">
+                                    <a href="{{ url_for('profile', username=post.username) }}">@{{ post.username }}</a>
+                                    <small>{{ 'You follow this creator' if post.followed_by_me else 'Active on Pixora' }}</small>
+                                </span>
+                                <form action="{{ url_for('toggle_follow', target_id=post.user_id) }}" method="POST">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button class="feed-follow-button{% if post.followed_by_me %} is-following{% endif %}"
+                                            type="submit">
+                                        {{ 'Following' if post.followed_by_me else 'Follow' }}
+                                    </button>
+                                </form>
+                            </article>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+                {% if not suggested_users.seen %}
+                    <p class="feed-suggestions-empty">
+                        Discover new people and creators through
+                        <a href="{{ url_for('search') }}">Search</a>.
+                    </p>
+                {% endif %}
+            </section>
+
+            <section class="feed-trending" aria-labelledby="feed-trending-title">
+                <header class="feed-aside-heading">
+                    <h2 id="feed-trending-title">Trending on Pixora</h2>
+                    <span aria-hidden="true">✦</span>
+                </header>
+                <div class="feed-trending-list" data-trending-topics>
+                    <p class="feed-trending-empty">
+                        Topics from recent captions will appear here.
+                    </p>
+                </div>
+            </section>
+
+            <footer class="feed-right-footer">
+                <nav aria-label="Pixora links">
+                    <a href="{{ url_for('home') }}">About</a>
+                    <a href="{{ url_for('search') }}">Explore</a>
+                    <a href="{{ url_for('notifications') }}">Notifications</a>
+                </nav>
+                <p>© 2026 PIXORA · MADE FOR YOUR MOMENTS</p>
+            </footer>
+        </aside>
+    </main>
+
+    <footer class="app-footer feed-mobile-footer">
+        <nav class="footer-nav" aria-label="Main navigation">
+            <a class="footer-icon" href="{{ url_for('feed') }}"
+               aria-label="Home" title="Home" aria-current="page">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1V10Z"/>
+                </svg>
+                <span>Home</span>
+            </a>
+            <a class="footer-icon" href="{{ url_for('search') }}"
+               aria-label="Explore" title="Explore">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9"/>
+                    <path d="m15.8 8.2-2.5 5.1-5.1 2.5 2.5-5.1 5.1-2.5Z"/>
+                </svg>
+                <span>Explore</span>
+            </a>
+            <a class="footer-icon" href="{{ url_for('create_post') }}"
+               aria-label="Create post" title="Create post">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="3" y="3" width="18" height="18" rx="5"/>
+                    <path d="M12 8v8m-4-4h8"/>
+                </svg>
+                <span>Create</span>
+            </a>
+            <a class="footer-icon" href="{{ url_for('reels') }}"
+               aria-label="Reels" title="Reels">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="3" y="4" width="18" height="16" rx="3"/>
+                    <path d="m7 4 4 5m2-5 4 5M3 9h18m-8 3 5 3-5 3z"/>
+                </svg>
+                <span>Reels</span>
+            </a>
+            <a class="footer-icon"
+               href="{{ url_for('profile', username=session.get('username')) }}"
+               aria-label="Profile" title="Profile">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="12" cy="8" r="4"/>
+                    <path d="M4 21a8 8 0 0 1 16 0"/>
+                </svg>
+                <span>Profile</span>
+            </a>
+        </nav>
+    </footer>
+</body>
+</html>

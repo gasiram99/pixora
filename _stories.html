@@ -1,0 +1,175 @@
+<section class="feed-stories-card story-card" aria-labelledby="feed-stories-title"
+         data-stories-widget
+         data-story-view-url="{{ url_for('view_story', story_id=0) }}"
+         data-story-viewers-url="{{ url_for('story_viewers', story_id=0) }}"
+         data-story-reply-url="{{ url_for('reply_to_story', story_id=0) }}"
+         data-story-delete-url="{{ url_for('delete_story', story_id=0) }}">
+    <header class="feed-section-heading">
+        <div>
+            <p class="eyebrow">MOMENTS THAT DISAPPEAR IN 24 HOURS</p>
+            <h2 id="feed-stories-title">Stories</h2>
+        </div>
+        <button class="story-add-link" type="button" data-story-open-create>
+            <span aria-hidden="true">＋</span> Add story
+        </button>
+    </header>
+
+    <div class="feed-stories-list story-list" aria-label="Active stories">
+        {% set own_story_index = namespace(value=-1) %}
+        {% for group in story_groups %}
+            {% if group.is_own %}
+                {% set own_story_index.value = loop.index0 %}
+            {% endif %}
+        {% endfor %}
+
+        <div class="feed-story story-item story-own-item">
+            <button class="story-open-button" type="button"
+                    {% if own_story_index.value >= 0 %}
+                        data-story-group-index="{{ own_story_index.value }}"
+                        aria-label="View your active story"
+                    {% else %}
+                        data-story-open-create aria-label="Add to your story"
+                    {% endif %}>
+                <span class="feed-story-ring feed-story-own{% if own_story_index.value >= 0 %} is-active{% endif %}">
+                    <span class="feed-avatar feed-story-avatar">
+                        {% if current_user.profile_image %}
+                            <img src="{{ url_for('static', filename='uploads/' + current_user.profile_image) }}"
+                                 alt="" loading="lazy">
+                        {% else %}
+                            {{ current_user.username[0]|upper }}
+                        {% endif %}
+                    </span>
+                </span>
+            </button>
+            <button class="story-add-button" type="button" data-story-open-create
+                    aria-label="Add a story">+</button>
+            <span class="feed-story-name">Your Story</span>
+        </div>
+
+        {% for group in story_groups %}
+            {% if not group.is_own %}
+                <button class="feed-story story-item story-open-button"
+                        type="button" data-story-group-index="{{ loop.index0 }}"
+                        aria-label="View @{{ group.username }}'s story">
+                    <span class="feed-story-ring{% if not group.has_unseen %} is-viewed{% endif %}">
+                        <span class="feed-avatar feed-story-avatar">
+                            {% if group.profile_image %}
+                                <img src="{{ url_for('static', filename='uploads/' + group.profile_image) }}"
+                                     alt="" loading="lazy">
+                            {% else %}
+                                {{ group.username[0]|upper }}
+                            {% endif %}
+                        </span>
+                    </span>
+                    <span class="feed-story-name">@{{ group.username }}</span>
+                </button>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    {% if not story_groups %}
+        <p class="feed-stories-note">Share a moment or follow people to see their stories here.</p>
+    {% endif %}
+
+    <script type="application/json" data-story-groups>{{ story_groups|tojson }}</script>
+    <input type="hidden" value="{{ csrf_token() }}" data-story-csrf>
+</section>
+
+<dialog class="story-compose-dialog" aria-labelledby="story-compose-title"
+        data-story-compose>
+    <form class="story-compose-form" action="{{ url_for('stories') }}"
+          method="POST" enctype="multipart/form-data" data-story-compose-form>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <header class="story-compose-header">
+            <div>
+                <p class="story-kicker">A LITTLE MOMENT, YOUR WAY</p>
+                <h2 id="story-compose-title">Create your story</h2>
+            </div>
+            <button class="story-icon-button" type="button" data-story-close
+                    aria-label="Close story creator">×</button>
+        </header>
+
+        <label class="story-upload-picker" data-story-upload-picker>
+            <input type="file" name="media" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"
+                   required data-story-file>
+            <span class="story-upload-icon" aria-hidden="true">＋</span>
+            <strong>Choose a photo or video</strong>
+            <span>JPG, PNG, WebP, MP4, or WebM · up to 25 MB</span>
+        </label>
+
+        <div class="story-preview" data-story-preview hidden>
+            <img alt="Selected story preview" data-story-preview-image hidden>
+            <video playsinline muted controls data-story-preview-video hidden></video>
+            <button class="story-preview-remove" type="button"
+                    aria-label="Remove selected media" data-story-remove-media>×</button>
+            <span class="story-overlay-preview" data-story-overlay-preview hidden></span>
+        </div>
+
+        <div class="story-compose-fields">
+            <label>
+                <span>Text overlay <small>optional · 140 characters</small></span>
+                <input type="text" name="overlay_text" maxlength="140"
+                       placeholder="Add a little text to your photo" data-story-overlay>
+            </label>
+            <label>
+                <span>Caption <small>optional · 300 characters</small></span>
+                <textarea name="caption" rows="2" maxlength="300"
+                          placeholder="Add a caption or a few emojis…"></textarea>
+            </label>
+        </div>
+
+        <p class="story-compose-status" role="status" data-story-compose-status></p>
+        <footer class="story-compose-actions">
+            <button class="story-secondary-button" type="button" data-story-close>Cancel</button>
+            <button class="story-primary-button" type="submit" data-story-share disabled>
+                Share to Story
+            </button>
+        </footer>
+    </form>
+</dialog>
+
+<dialog class="story-viewer-dialog" aria-label="Story viewer" data-story-viewer>
+    <div class="story-viewer-shell">
+        <div class="story-viewer-progress" aria-label="Story progress" data-story-progress></div>
+        <header class="story-viewer-header">
+            <span class="story-viewer-avatar" data-story-viewer-avatar></span>
+            <span class="story-viewer-creator">
+                <strong data-story-viewer-username></strong>
+                <time data-story-viewer-time></time>
+            </span>
+            <button class="story-viewer-control" type="button" data-story-pause
+                    aria-label="Pause story">Ⅱ</button>
+            <form method="POST" data-story-delete-form hidden>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="story-viewer-control story-delete-control" type="submit"
+                        data-story-delete>Delete</button>
+            </form>
+            <button class="story-viewer-control" type="button" data-story-viewers
+                    aria-label="View story viewers" hidden>Views</button>
+            <button class="story-viewer-control story-viewer-close" type="button"
+                    data-story-viewer-close aria-label="Close story">×</button>
+        </header>
+
+        <div class="story-viewer-stage" data-story-stage>
+            <img alt="" data-story-viewer-image hidden>
+            <video playsinline data-story-viewer-video hidden></video>
+            <span class="story-viewer-overlay-text" data-story-viewer-overlay hidden></span>
+            <div class="story-viewer-caption" data-story-viewer-caption hidden></div>
+            <button class="story-viewer-nav story-viewer-prev" type="button"
+                    data-story-previous aria-label="Previous story">‹</button>
+            <button class="story-viewer-nav story-viewer-next" type="button"
+                    data-story-next aria-label="Next story">›</button>
+        </div>
+
+        <section class="story-viewer-viewers" data-story-viewers-panel hidden
+                 aria-label="Story viewers"></section>
+        <form class="story-reply-form" data-story-reply-form hidden>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <label class="visually-hidden" for="story-reply-input">Reply to this story</label>
+            <input id="story-reply-input" name="message_text" maxlength="2000"
+                   placeholder="Reply to this story…" autocomplete="off">
+            <button type="submit">Send</button>
+        </form>
+        <p class="story-reply-status" role="status" data-story-reply-status></p>
+    </div>
+</dialog>

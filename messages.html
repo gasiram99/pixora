@@ -1,0 +1,325 @@
+{% extends "base.html" %}
+{% block title %}Messages · Pixora{% endblock %}
+{% block content %}
+<section class="messages-page{% if recipient %} has-active-chat{% endif %}"
+         data-messages-page>
+    <aside class="messages-sidebar" aria-label="Messages and conversations">
+        <header class="messages-sidebar-header">
+            <div class="messages-account">
+                <a class="messages-user-avatar" href="{{ url_for('profile', username=current_user.username) }}"
+                   aria-label="Your profile">
+                    {% if current_user.profile_image %}
+                        <img src="{{ url_for('static', filename='uploads/' + current_user.profile_image) }}"
+                             alt="" loading="lazy">
+                    {% else %}
+                        <span>{{ current_user.username[0]|upper }}</span>
+                    {% endif %}
+                </a>
+                <div>
+                    <a href="{{ url_for('profile', username=current_user.username) }}">@{{ current_user.username }}</a>
+                    <span>Your inbox</span>
+                </div>
+            </div>
+            <button class="messages-new-button" type="button" data-new-message-toggle
+                    aria-label="Start a conversation" title="Start a conversation"
+                    aria-expanded="{{ 'true' if recipient_not_found else 'false' }}">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 5v14m-7-7h14"/>
+                </svg>
+            </button>
+        </header>
+
+        <div class="messages-sidebar-title">
+            <div>
+                <p class="messages-eyebrow">YOUR COMMUNITY</p>
+                <h1>Messages</h1>
+            </div>
+            <span class="messages-count">{{ conversations|length }}</span>
+        </div>
+
+        <form class="conversation-search" role="search" data-conversation-search>
+            <label class="visually-hidden" for="conversation-filter">Search conversations</label>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="10.8" cy="10.8" r="6.8"/>
+                <path d="m16 16 5 5"/>
+            </svg>
+            <input id="conversation-filter" type="search" placeholder="Search conversations"
+                   autocomplete="off" data-conversation-filter>
+            <button type="button" data-clear-conversation-search aria-label="Clear search" hidden>×</button>
+        </form>
+
+        <form class="messages-new-form{% if not recipient_not_found %} is-collapsed{% endif %}"
+              action="{{ url_for('messages') }}" method="GET" data-new-message-form>
+            <label for="new-message-username">Start a conversation</label>
+            <div class="messages-new-fields">
+                <span aria-hidden="true">@</span>
+                <input id="new-message-username" name="to" maxlength="30"
+                       value="{{ recipient_username if recipient_not_found else '' }}"
+                       placeholder="Enter a Pixora username" autocomplete="off" required>
+                <button type="submit">Open</button>
+            </div>
+            {% if recipient_not_found %}
+                <p class="messages-inline-error" role="status">
+                    No verified account found for @{{ recipient_username }}.
+                </p>
+            {% endif %}
+        </form>
+
+        <div class="conversation-list-heading">
+            <h2>Recent</h2>
+            <span>MESSAGES</span>
+        </div>
+
+        <nav class="conversation-list" aria-label="Recent conversations" data-conversation-list>
+            {% for conversation in conversations %}
+                <a class="conversation-link{% if recipient and recipient.id == conversation.id %} active{% endif %}"
+                   href="{{ url_for('messages', to=conversation.username) }}"
+                   data-conversation-item data-username="{{ conversation.username|lower }}"
+                   data-last-message="{{ conversation.last_message|lower }}">
+                    <span class="messages-avatar">
+                        {% if conversation.profile_image %}
+                            <img src="{{ url_for('static', filename='uploads/' + conversation.profile_image) }}"
+                                 alt="" loading="lazy">
+                        {% else %}
+                            <span>{{ conversation.username[0]|upper }}</span>
+                        {% endif %}
+                    </span>
+                    <span class="conversation-preview">
+                        <span class="conversation-preview-top">
+                            <strong>@{{ conversation.username }}</strong>
+                            <time datetime="{{ conversation.last_message_at.isoformat() }}">
+                                {{ conversation.last_message_at.strftime("%b %d") }}
+                            </time>
+                        </span>
+                        <span class="conversation-preview-bottom">
+                            <span class="conversation-last-message">
+                                {% if conversation.last_sender_id == current_user_id %}You: {% endif %}
+                                {{ conversation.last_message|truncate(42, True) }}
+                            </span>
+                            {% if conversation.unread_count %}
+                                <span class="conversation-unread"
+                                      aria-label="{{ conversation.unread_count }} unread messages">
+                                    {{ conversation.unread_count if conversation.unread_count < 100 else '99+' }}
+                                </span>
+                            {% endif %}
+                        </span>
+                    </span>
+                </a>
+            {% else %}
+                <div class="conversation-empty" data-conversation-empty>
+                    <span aria-hidden="true">✉</span>
+                    <strong>Your conversations start here</strong>
+                    <p>Find someone on Pixora and send them a message.</p>
+                    <a href="{{ url_for('search') }}">Discover people</a>
+                </div>
+            {% endfor %}
+            <p class="conversation-no-results" data-no-conversations hidden>
+                No conversations match your search.
+            </p>
+        </nav>
+
+        <footer class="messages-sidebar-footer">
+            <span class="messages-footer-sparkle" aria-hidden="true">✦</span>
+            <span>Good conversations make good days.</span>
+        </footer>
+    </aside>
+
+    <section class="messages-chat-area{% if recipient %} is-open{% endif %}"
+             aria-label="Message conversation">
+        {% if recipient %}
+            <header class="chat-header">
+                <a class="chat-back-button" href="{{ url_for('messages') }}"
+                   aria-label="Back to conversations" title="Back to conversations">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="m15 18-6-6 6-6M9 12h12"/>
+                    </svg>
+                </a>
+                <a class="chat-avatar" href="{{ url_for('profile', username=recipient.username) }}"
+                   aria-label="View @{{ recipient.username }}'s profile">
+                    {% if recipient.profile_image %}
+                        <img src="{{ url_for('static', filename='uploads/' + recipient.profile_image) }}"
+                             alt="" loading="lazy">
+                    {% else %}
+                        <span>{{ recipient.username[0]|upper }}</span>
+                    {% endif %}
+                </a>
+                <div class="chat-person">
+                    <h2>@{{ recipient.username }}</h2>
+                    <a href="{{ url_for('profile', username=recipient.username) }}">View profile</a>
+                </div>
+                <div class="chat-header-actions" aria-label="Conversation actions">
+                    <button class="chat-header-button" type="button" disabled
+                            aria-label="Voice calls are not available" title="Voice calls are not available yet">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.4 19.4 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7l.5 3.2a2 2 0 0 1-.6 1.7L7.7 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 1.7-.6l3.2.5a2 2 0 0 1 1.7 2.4Z"/>
+                        </svg>
+                    </button>
+                    <button class="chat-header-button" type="button" disabled
+                            aria-label="Video calls are not available" title="Video calls are not available yet">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <rect x="3" y="6" width="13" height="12" rx="2"/>
+                            <path d="m16 10 5-3v10l-5-3"/>
+                        </svg>
+                    </button>
+                    <button class="chat-header-button" type="button" data-chat-info-toggle
+                            aria-label="Conversation information" aria-expanded="false"
+                            aria-controls="chat-info-panel" title="Conversation information">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <circle cx="12" cy="12" r="9"/>
+                            <path d="M12 11v5m0-8h.01"/>
+                        </svg>
+                    </button>
+                    <button class="chat-header-button" type="button" data-chat-options-toggle
+                            aria-label="More conversation options" aria-expanded="false"
+                            aria-controls="chat-options-panel" title="More conversation options">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <circle cx="5" cy="12" r="1"/>
+                            <circle cx="12" cy="12" r="1"/>
+                            <circle cx="19" cy="12" r="1"/>
+                        </svg>
+                    </button>
+                </div>
+            </header>
+
+            <aside class="chat-info-panel" id="chat-info-panel" data-chat-info-panel hidden>
+                <a class="chat-info-avatar" href="{{ url_for('profile', username=recipient.username) }}">
+                    {% if recipient.profile_image %}
+                        <img src="{{ url_for('static', filename='uploads/' + recipient.profile_image) }}"
+                             alt="" loading="lazy">
+                    {% else %}
+                        <span>{{ recipient.username[0]|upper }}</span>
+                    {% endif %}
+                </a>
+                <strong>@{{ recipient.username }}</strong>
+                <span>Pixora member</span>
+                <a class="chat-info-profile-link"
+                   href="{{ url_for('profile', username=recipient.username) }}">View profile</a>
+            </aside>
+            <div class="chat-options-panel" id="chat-options-panel"
+                 data-chat-options-panel hidden>
+                <a href="{{ url_for('profile', username=recipient.username) }}">View @{{ recipient.username }}’s profile</a>
+                <a href="{{ url_for('search') }}">Discover more people</a>
+                <a href="{{ url_for('messages') }}">Back to inbox</a>
+            </div>
+
+            <div class="message-thread" aria-live="polite" aria-label="Conversation messages"
+                 data-message-thread>
+                {% if messages %}
+                    {% for message in messages %}
+                        <article class="chat-message{% if message.sender_id == current_user_id %} sent{% else %} received{% endif %}">
+                            {% if message.sender_id != current_user_id %}
+                                <span class="chat-message-avatar" aria-hidden="true">
+                                    {% if recipient.profile_image %}
+                                        <img src="{{ url_for('static', filename='uploads/' + recipient.profile_image) }}"
+                                             alt="" loading="lazy">
+                                    {% else %}
+                                        {{ recipient.username[0]|upper }}
+                                    {% endif %}
+                                </span>
+                            {% endif %}
+                            <div class="chat-bubble">
+                                <p>{{ message.message_text }}</p>
+                                <time datetime="{{ message.created_at.isoformat() }}">
+                                    {{ message.created_at.strftime("%b %d, %I:%M %p") }}
+                                </time>
+                            </div>
+                        </article>
+                    {% endfor %}
+                {% else %}
+                    <div class="chat-start-card">
+                        <span class="chat-start-avatar">
+                            {% if recipient.profile_image %}
+                                <img src="{{ url_for('static', filename='uploads/' + recipient.profile_image) }}"
+                                     alt="" loading="lazy">
+                            {% else %}
+                                <span>{{ recipient.username[0]|upper }}</span>
+                            {% endif %}
+                        </span>
+                        <strong>@{{ recipient.username }}</strong>
+                        <span>No messages yet. Send a hello to get started.</span>
+                        <a href="{{ url_for('profile', username=recipient.username) }}">View profile</a>
+                    </div>
+                {% endif %}
+            </div>
+
+            {% if recipient.id != current_user_id %}
+                <form class="send-message-form" action="{{ url_for('messages') }}"
+                      method="POST" data-message-form>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="to" value="{{ recipient.username }}">
+                    <div class="message-composer">
+                        <button class="composer-tool-button" type="button" data-emoji-toggle
+                                aria-label="Choose an emoji" aria-expanded="false"
+                                title="Choose an emoji">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <circle cx="12" cy="12" r="9"/>
+                                <path d="M8 14s1.3 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/>
+                            </svg>
+                        </button>
+                        <label class="visually-hidden" for="message-text">Write a message</label>
+                        <textarea id="message-text" name="message_text"
+                                  placeholder="Write a message…" maxlength="2000"
+                                  rows="1" required data-message-input></textarea>
+                        <button class="composer-tool-button composer-attachment" type="button" disabled
+                                aria-label="Image attachments are not available" title="Image attachments are not available yet">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <rect x="3" y="3" width="18" height="18" rx="3"/>
+                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                <path d="m21 15-5-5L5 21"/>
+                            </svg>
+                        </button>
+                        <button class="send-message-button" type="submit" aria-label="Send message" title="Send message">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="m22 2-7 20-4-9-9-4Z"/>
+                                <path d="M22 2 11 13"/>
+                            </svg>
+                            <span>Send</span>
+                        </button>
+                    </div>
+                    <div class="emoji-picker" data-emoji-picker hidden aria-label="Emoji picker">
+                        {% for emoji in ["😊", "😂", "❤️", "😍", "🥹", "✨", "🙌", "👍", "🎉", "👋", "🙏", "💜"] %}
+                            <button type="button" data-emoji="{{ emoji }}" aria-label="Insert {{ emoji }}">{{ emoji }}</button>
+                        {% endfor %}
+                    </div>
+                    <p class="composer-note">Messages are private to this conversation.</p>
+                </form>
+            {% else %}
+                <p class="thread-empty">You can’t send a message to yourself.</p>
+            {% endif %}
+        {% else %}
+            <section class="messages-welcome">
+                <div class="welcome-message-art" aria-hidden="true">
+                    <svg viewBox="0 0 64 64">
+                        <path d="M10 15h44v30H29L15 56v-11h-5z"/>
+                        <path d="M22 26h20m-20 9h13"/>
+                    </svg>
+                    <span>✦</span>
+                </div>
+                <p class="messages-eyebrow">A LITTLE CLOSER</p>
+                <h2>Your conversations, all in one place</h2>
+                <p>Choose a conversation to pick up where you left off, or find someone new to say hello to.</p>
+                <a href="{{ url_for('search') }}">Find people on Pixora</a>
+            </section>
+        {% endif %}
+    </section>
+</section>
+<footer class="app-footer messages-mobile-footer">
+    <nav class="footer-nav" aria-label="Main navigation">
+        <a class="footer-icon" href="{{ url_for('feed') }}" aria-label="Home">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1V10Z"/></svg><span>Home</span>
+        </a>
+        <a class="footer-icon" href="{{ url_for('reels') }}" aria-label="Reels">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="m7 4 4 5m2-5 4 5M3 9h18m-8 3 5 3-5 3z"/></svg><span>Reels</span>
+        </a>
+        <a class="footer-icon is-current" href="{{ url_for('messages') }}" aria-label="Messages" aria-current="page">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8A8.5 8.5 0 0 1 8.7 3.9a8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"/></svg><span>Messages</span>
+        </a>
+        <a class="footer-icon" href="{{ url_for('search') }}" aria-label="Explore">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg><span>Explore</span>
+        </a>
+        <a class="footer-icon" href="{{ url_for('profile', username=current_user.username) }}" aria-label="Profile">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Profile</span>
+        </a>
+    </nav>
+</footer>
+{% endblock %}

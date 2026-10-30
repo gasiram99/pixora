@@ -1,0 +1,43 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Pixora</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <main class="auth-card">
+        <h1>Pixora</h1>
+        <p>Welcome back! Log in to continue.</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% for category, message in messages %}
+            <div class="message {{ category }}" role="status">{{ message }}</div>
+          {% endfor %}
+        {% endwith %}
+
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <label for="email">Email address</label>
+            <input id="email" type="email" name="email" required>
+
+            <label for="password">Password</label>
+            <input id="password" type="password"
+                   name="password" required>
+
+            <button type="submit">Log In</button>
+        </form>
+
+        <p class="auth-secondary-link">
+            <a href="{{ url_for('forgot_password') }}">Forgot password?</a>
+        </p>
+
+        <p>New to Pixora?
+            <a href="{{ url_for('register') }}">Create an account</a>
+        </p>
+    </main>
+</body>
+</html>
